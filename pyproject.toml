@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "g8scope-django"
+version = "1.0.0"
+description = "Django adapter for the g8scope error-capture platform — middleware over the g8scope Python SDK"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "Developers Hub Sdn Bhd" }]
+keywords = ["g8scope", "django", "error", "observability", "monitoring", "telemetry"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Framework :: Django",
+    "Topic :: System :: Monitoring",
+]
+# NOTE: ``g8scope`` is the local/unpublished runtime SDK in ../g8scope-python.
+# Until it is published, install it editable for development and tests:
+#     python3 -m pip install --user -e ../g8scope-python
+dependencies = ["g8scope"]
+
+[project.optional-dependencies]
+dev = ["pytest", "django"]
+
+[project.urls]
+Homepage = "https://scope.g8suite.com"
+Repository = "https://github.com/developers-hub-my/g8scope-django"
+
+[tool.setuptools.packages.find]
+include = ["g8scope_django*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
