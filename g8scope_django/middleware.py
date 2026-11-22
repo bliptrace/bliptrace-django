@@ -17,8 +17,10 @@ from g8scope import Client, Config
 
 from .context import build_context
 
-# Settings keys we accept (either nested in a ``G8SCOPE`` dict or as
-# individual ``G8SCOPE_<KEY>`` settings) mapped to ``Config`` kwargs.
+# Settings keys we accept (either nested in a ``BLIPTRACE`` dict or as
+# individual ``BLIPTRACE_<KEY>`` settings) mapped to ``Config`` kwargs.
+# The old ``G8SCOPE`` / ``G8SCOPE_<KEY>`` names still work (deprecated).
+_PREFIXES = ("G8SCOPE", "BLIPTRACE")  # lowest precedence first
 _CONFIG_KEYS = (
     "key",
     "endpoint",
@@ -78,26 +80,28 @@ def _build_client() -> Optional[Client]:
 def _read_settings() -> Dict[str, Any]:
     """Read config from Django settings.
 
-    Accepts a ``G8SCOPE`` dict and/or individual ``G8SCOPE_<KEY>`` settings.
+    Accepts a ``BLIPTRACE`` dict and/or individual ``BLIPTRACE_<KEY>`` settings
+    (deprecated ``G8SCOPE`` / ``G8SCOPE_<KEY>`` names are used as fallback).
     Returns kwargs suitable for :class:`g8scope.Config`. Tolerant of a missing
     or unconfigured Django settings module.
     """
     settings = _django_settings()
     values: Dict[str, Any] = {}
 
-    nested = _getattr(settings, "G8SCOPE", None)
-    if isinstance(nested, dict):
-        for name, value in nested.items():
-            key = str(name).lower()
-            if key in _CONFIG_KEYS:
+    # Any BLIPTRACE name wins over any G8SCOPE name; the G8SCOPE names are
+    # deprecated fallbacks (removed in the next major). Within a prefix,
+    # individual <PREFIX>_<KEY> settings override the nested dict.
+    for prefix in _PREFIXES:
+        nested = _getattr(settings, prefix, None)
+        if isinstance(nested, dict):
+            for name, value in nested.items():
+                key = str(name).lower()
+                if key in _CONFIG_KEYS:
+                    values[key] = value
+        for key in _CONFIG_KEYS:
+            value = _getattr(settings, prefix + "_" + key.upper(), _MISSING)
+            if value is not _MISSING:
                 values[key] = value
-
-    # Individual G8SCOPE_<KEY> settings override the nested dict.
-    for key in _CONFIG_KEYS:
-        attr = "G8SCOPE_" + key.upper()
-        value = _getattr(settings, attr, _MISSING)
-        if value is not _MISSING:
-            values[key] = value
 
     # Tag the SDK so the platform knows the report came via the Django adapter.
     values.setdefault("sdk_name", "g8scope-django")

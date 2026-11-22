@@ -35,10 +35,10 @@ MIDDLEWARE = [
 ]
 ```
 
-Then configure g8scope. Either a single `G8SCOPE` dict:
+Then configure g8scope. Either a single `BLIPTRACE` dict:
 
 ```python
-G8SCOPE = {
+BLIPTRACE = {
     "key": "your-ingest-key",
     "endpoint": "https://ingest.scope.g8suite.com",
     "environment": "production",
@@ -50,10 +50,14 @@ G8SCOPE = {
 ...or individual settings (these override the dict):
 
 ```python
-G8SCOPE_KEY = "your-ingest-key"
-G8SCOPE_ENDPOINT = "https://ingest.scope.g8suite.com"
-G8SCOPE_ENVIRONMENT = "production"
+BLIPTRACE_KEY = "your-ingest-key"
+BLIPTRACE_ENDPOINT = "https://ingest.scope.g8suite.com"
+BLIPTRACE_ENVIRONMENT = "production"
 ```
+
+> **Deprecated:** the old `G8SCOPE` dict and `G8SCOPE_*` settings are still
+> read as a fallback when no `BLIPTRACE` setting provides the value. They will be removed
+> in the next major version.
 
 If no key is configured, or `enabled` is `False`, the middleware quietly
 captures nothing.

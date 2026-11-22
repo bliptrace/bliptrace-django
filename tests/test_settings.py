@@ -67,3 +67,25 @@ def test_build_client_from_settings_and_capture():
 
     assert len(t.sent) == 1
     assert t.sent[0]["sdk"]["name"] == "g8scope-django"
+
+
+def test_bliptrace_settings_win_over_deprecated_g8scope():
+    from g8scope_django.middleware import _read_settings
+
+    _set(
+        G8SCOPE={"key": "old-dict", "release": "old-rel"},
+        BLIPTRACE={"key": "new-dict"},
+        G8SCOPE_ENVIRONMENT="old-env",
+        BLIPTRACE_ENVIRONMENT="new-env",
+        G8SCOPE_ENDPOINT="http://old",
+    )
+    try:
+        values = _read_settings()
+        assert values["key"] == "new-dict"
+        assert values["environment"] == "new-env"
+        # Old names still apply when the BLIPTRACE name is unset.
+        assert values["endpoint"] == "http://old"
+        assert values["release"] == "old-rel"
+    finally:
+        for name in ("BLIPTRACE", "G8SCOPE_ENVIRONMENT", "BLIPTRACE_ENVIRONMENT", "G8SCOPE_ENDPOINT"):
+            delattr(settings, name)
