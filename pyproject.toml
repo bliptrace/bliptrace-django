@@ -17,9 +17,9 @@ classifiers = [
     "Framework :: Django",
     "Topic :: System :: Monitoring",
 ]
-# NOTE: ``g8scope`` is the local/unpublished runtime SDK in ../g8scope-python.
+# NOTE: ``g8scope`` is the local/unpublished runtime SDK in ../bliptrace-python.
 # Until it is published, install it editable for development and tests:
-#     python3 -m pip install --user -e ../g8scope-python
+#     python3 -m pip install --user -e ../bliptrace-python
 dependencies = ["g8scope"]
 
 [project.optional-dependencies]
@@ -27,7 +27,7 @@ dev = ["pytest", "django"]
 
 [project.urls]
 Homepage = "https://scope.g8suite.com"
-Repository = "https://github.com/developers-hub-my/g8scope-django"
+Repository = "https://github.com/bliptrace/bliptrace-django"
 
 [tool.setuptools.packages.find]
 include = ["g8scope_django*"]

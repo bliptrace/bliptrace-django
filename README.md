@@ -1,8 +1,8 @@
-# g8scope-django
+# bliptrace-django
 
 Django adapter for the [g8scope](https://scope.g8suite.com) error-capture and
 observability platform. A **thin** layer over the runtime
-[`g8scope` Python SDK](../g8scope-python) — it adds Django middleware that
+[`g8scope` Python SDK](../bliptrace-python) — it adds Django middleware that
 captures unhandled exceptions, enriches them with request context, and ships
 them to your g8scope ingest endpoint.
 
@@ -16,11 +16,11 @@ This adapter depends on the runtime `g8scope` Python SDK. While the SDK is
 unpublished, install it editable alongside this package:
 
 ```bash
-python3 -m pip install --user -e ../g8scope-python
+python3 -m pip install --user -e ../bliptrace-python
 python3 -m pip install --user -e .
 ```
 
-(Once both packages are published, `pip install g8scope-django` will pull
+(Once both packages are published, `pip install bliptrace-django` will pull
 `g8scope` automatically.)
 
 ## Configuration
@@ -81,7 +81,7 @@ is a plain callable class and the context builder accepts duck-typed request
 objects.
 
 ```bash
-python3 -m pip install --user -e ../g8scope-python
+python3 -m pip install --user -e ../bliptrace-python
 python3 -m pip install --user pytest
 python3 -m pytest -q
 ```
