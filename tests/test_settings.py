@@ -17,34 +17,43 @@ def _reset_django_settings():
     if not settings.configured:
         settings.configure(DEBUG=True)
     yield
+    # Settings are process-global: drop whatever this test set so it cannot leak.
+    while _SET_NAMES:
+        name = _SET_NAMES.pop()
+        if hasattr(settings, name):
+            delattr(settings, name)
+
+
+_SET_NAMES: list = []
 
 
 def _set(**kwargs):
     for name, value in kwargs.items():
         setattr(settings, name, value)
+        _SET_NAMES.append(name)
 
 
-def test_read_settings_from_g8scope_dict():
-    from g8scope_django.middleware import _read_settings
+def test_read_settings_from_bliptrace_dict():
+    from bliptrace_django.middleware import _read_settings
 
-    _set(G8SCOPE={"key": "from-dict", "endpoint": "http://x", "enabled": True})
+    _set(BLIPTRACE={"key": "from-dict", "endpoint": "http://x", "enabled": True})
     values = _read_settings()
     assert values["key"] == "from-dict"
     assert values["endpoint"] == "http://x"
-    assert values["sdk_name"] == "g8scope-django"
+    assert values["sdk_name"] == "bliptrace-django"
 
 
 def test_individual_settings_override_dict():
-    from g8scope_django.middleware import _read_settings
+    from bliptrace_django.middleware import _read_settings
 
-    _set(G8SCOPE={"key": "from-dict"}, G8SCOPE_KEY="from-individual")
+    _set(BLIPTRACE={"key": "from-dict"}, BLIPTRACE_KEY="from-individual")
     values = _read_settings()
     assert values["key"] == "from-individual"
 
 
 def test_build_client_from_settings_and_capture():
-    from g8scope import Transport
-    from g8scope_django.middleware import G8ScopeMiddleware
+    from bliptrace import Transport
+    from bliptrace_django.middleware import BliptraceMiddleware
 
     class T(Transport):
         def __init__(self):
@@ -53,9 +62,9 @@ def test_build_client_from_settings_and_capture():
         def send(self, endpoint, key, envelope, timeout):
             self.sent.append(envelope)
 
-    _set(G8SCOPE={"key": "k", "endpoint": "http://api"})
+    _set(BLIPTRACE={"key": "k", "endpoint": "http://api"})
     # Build via settings (no injected client), then swap in a fake transport.
-    mw = G8ScopeMiddleware(get_response=None)
+    mw = BliptraceMiddleware(get_response=None)
     assert mw.client is not None
     t = T()
     mw.client.transport = t
@@ -66,11 +75,11 @@ def test_build_client_from_settings_and_capture():
         mw.process_exception(object(), e)
 
     assert len(t.sent) == 1
-    assert t.sent[0]["sdk"]["name"] == "g8scope-django"
+    assert t.sent[0]["sdk"]["name"] == "bliptrace-django"
 
 
-def test_bliptrace_settings_win_over_deprecated_g8scope():
-    from g8scope_django.middleware import _read_settings
+def test_bliptrace_settings_win_over_deprecated_names():
+    from bliptrace_django.middleware import _read_settings
 
     _set(
         G8SCOPE={"key": "old-dict", "release": "old-rel"},
@@ -79,13 +88,9 @@ def test_bliptrace_settings_win_over_deprecated_g8scope():
         BLIPTRACE_ENVIRONMENT="new-env",
         G8SCOPE_ENDPOINT="http://old",
     )
-    try:
-        values = _read_settings()
-        assert values["key"] == "new-dict"
-        assert values["environment"] == "new-env"
-        # Old names still apply when the BLIPTRACE name is unset.
-        assert values["endpoint"] == "http://old"
-        assert values["release"] == "old-rel"
-    finally:
-        for name in ("BLIPTRACE", "G8SCOPE_ENVIRONMENT", "BLIPTRACE_ENVIRONMENT", "G8SCOPE_ENDPOINT"):
-            delattr(settings, name)
+    values = _read_settings()
+    assert values["key"] == "new-dict"
+    assert values["environment"] == "new-env"
+    # Old names still apply when the BLIPTRACE name is unset.
+    assert values["endpoint"] == "http://old"
+    assert values["release"] == "old-rel"

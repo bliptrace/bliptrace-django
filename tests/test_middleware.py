@@ -1,9 +1,9 @@
 import re
 
-from g8scope import Client, Config, Transport
+from bliptrace import Client, Config, Transport
 
-from g8scope_django import build_context
-from g8scope_django.middleware import G8ScopeMiddleware
+from bliptrace_django import build_context
+from bliptrace_django.middleware import BliptraceMiddleware
 
 UUID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -58,7 +58,7 @@ def _raise(exc):
 
 def _client_with_transport(**config_kwargs):
     t = FakeTransport()
-    config = Config(sdk_name="g8scope-django", sdk_version="1.0.0", **config_kwargs)
+    config = Config(sdk_name="bliptrace-django", sdk_version="1.0.0", **config_kwargs)
     return Client(config, t), t
 
 
@@ -66,7 +66,7 @@ def _client_with_transport(**config_kwargs):
 
 def test_process_exception_builds_and_ships_a_valid_envelope():
     client, t = _client_with_transport(key="k", endpoint="http://api")
-    mw = G8ScopeMiddleware(get_response=lambda r: r, client=client)
+    mw = BliptraceMiddleware(get_response=lambda r: r, client=client)
 
     request = FakeRequest(method="POST", path="/checkout")
     mw.process_exception(request, _raise(RuntimeError("boom")))
@@ -74,7 +74,7 @@ def test_process_exception_builds_and_ships_a_valid_envelope():
     assert len(t.sent) == 1
     env = t.sent[0]["envelope"]
     assert env["runtime"]["name"] == "python"
-    assert env["sdk"]["name"] == "g8scope-django"
+    assert env["sdk"]["name"] == "bliptrace-django"
     assert env["sdk"]["version"]
     assert env["exception"]["type"] == "RuntimeError"
     assert env["exception"]["message"] == "boom"
@@ -86,7 +86,7 @@ def test_process_exception_builds_and_ships_a_valid_envelope():
 
 def test_process_exception_includes_authenticated_user_id():
     client, t = _client_with_transport(key="k")
-    mw = G8ScopeMiddleware(get_response=None, client=client)
+    mw = BliptraceMiddleware(get_response=None, client=client)
 
     request = FakeRequest(user=FakeUser(id=42, is_authenticated=True))
     mw.process_exception(request, _raise(ValueError("x")))
@@ -96,7 +96,7 @@ def test_process_exception_includes_authenticated_user_id():
 
 def test_process_exception_returns_none_so_django_continues():
     client, _ = _client_with_transport(key="k")
-    mw = G8ScopeMiddleware(get_response=None, client=client)
+    mw = BliptraceMiddleware(get_response=None, client=client)
     result = mw.process_exception(FakeRequest(), _raise(Exception("x")))
     assert result is None
 
@@ -105,20 +105,20 @@ def test_process_exception_returns_none_so_django_continues():
 
 def test_disabled_sends_nothing():
     client, t = _client_with_transport(key="k", enabled=False)
-    mw = G8ScopeMiddleware(get_response=None, client=client)
+    mw = BliptraceMiddleware(get_response=None, client=client)
     mw.process_exception(FakeRequest(), _raise(Exception("x")))
     assert t.sent == []
 
 
 def test_no_key_sends_nothing():
     client, t = _client_with_transport(key=None)
-    mw = G8ScopeMiddleware(get_response=None, client=client)
+    mw = BliptraceMiddleware(get_response=None, client=client)
     mw.process_exception(FakeRequest(), _raise(Exception("x")))
     assert t.sent == []
 
 
 def test_no_client_sends_nothing_and_does_not_raise():
-    mw = G8ScopeMiddleware(get_response=None, client=None)
+    mw = BliptraceMiddleware(get_response=None, client=None)
     # Must not raise even though there is no client.
     mw.process_exception(FakeRequest(), _raise(Exception("x")))
 
@@ -127,7 +127,7 @@ def test_no_client_sends_nothing_and_does_not_raise():
 
 def test_never_raises_on_weird_request():
     client, t = _client_with_transport(key="k")
-    mw = G8ScopeMiddleware(get_response=None, client=client)
+    mw = BliptraceMiddleware(get_response=None, client=client)
 
     class WeirdRequest:
         @property
@@ -150,7 +150,7 @@ def test_never_raises_on_weird_request():
 def test_call_delegates_to_get_response():
     client, _ = _client_with_transport(key="k")
     sentinel = object()
-    mw = G8ScopeMiddleware(get_response=lambda r: sentinel, client=client)
+    mw = BliptraceMiddleware(get_response=lambda r: sentinel, client=client)
     assert mw(FakeRequest()) is sentinel
 
 

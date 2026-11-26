@@ -1,10 +1,10 @@
 # bliptrace-django
 
-Django adapter for the [g8scope](https://scope.g8suite.com) error-capture and
+Django adapter for the [Bliptrace](https://scope.g8suite.com) error-capture and
 observability platform. A **thin** layer over the runtime
-[`g8scope` Python SDK](../bliptrace-python) — it adds Django middleware that
+[`bliptrace` Python SDK](../bliptrace-python) — it adds Django middleware that
 captures unhandled exceptions, enriches them with request context, and ships
-them to your g8scope ingest endpoint.
+them to your Bliptrace ingest endpoint.
 
 It is built to **never break the host application**: every code path on the
 error route is guarded, and a slow or unreachable ingest endpoint can never
@@ -12,7 +12,7 @@ slow down or crash your Django app.
 
 ## Installation
 
-This adapter depends on the runtime `g8scope` Python SDK. While the SDK is
+This adapter depends on the runtime `bliptrace` Python SDK. While the SDK is
 unpublished, install it editable alongside this package:
 
 ```bash
@@ -21,7 +21,7 @@ python3 -m pip install --user -e .
 ```
 
 (Once both packages are published, `pip install bliptrace-django` will pull
-`g8scope` automatically.)
+`bliptrace` automatically.)
 
 ## Configuration
 
@@ -31,11 +31,11 @@ it sees exceptions raised by views and inner middleware:
 ```python
 MIDDLEWARE = [
     # ...
-    "g8scope_django.middleware.G8ScopeMiddleware",
+    "bliptrace_django.middleware.BliptraceMiddleware",
 ]
 ```
 
-Then configure g8scope. Either a single `BLIPTRACE` dict:
+Then configure Bliptrace. Either a single `BLIPTRACE` dict:
 
 ```python
 BLIPTRACE = {

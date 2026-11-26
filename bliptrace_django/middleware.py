@@ -1,6 +1,6 @@
-"""Django middleware that captures unhandled exceptions via the g8scope SDK.
+"""Django middleware that captures unhandled exceptions via the Bliptrace SDK.
 
-Thin glue over the runtime ``g8scope`` Python SDK. It builds a :class:`Client`
+Thin glue over the runtime ``bliptrace`` Python SDK. It builds a :class:`Client`
 once from Django settings and, on each unhandled exception, enriches it with
 request context and ships it. Everything is guarded — capturing must NEVER
 break the host application.
@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
-from g8scope import Client, Config
+from bliptrace import Client, Config
 
 from .context import build_context
 
@@ -36,10 +36,10 @@ _CONFIG_KEYS = (
 )
 
 
-class G8ScopeMiddleware:
+class BliptraceMiddleware:
     """Standard Django middleware.
 
-    Add ``'g8scope_django.middleware.G8ScopeMiddleware'`` to ``MIDDLEWARE``.
+    Add ``'bliptrace_django.middleware.BliptraceMiddleware'`` to ``MIDDLEWARE``.
     """
 
     def __init__(self, get_response: Any = None, client: Optional[Client] = None):
@@ -82,7 +82,7 @@ def _read_settings() -> Dict[str, Any]:
 
     Accepts a ``BLIPTRACE`` dict and/or individual ``BLIPTRACE_<KEY>`` settings
     (deprecated ``G8SCOPE`` / ``G8SCOPE_<KEY>`` names are used as fallback).
-    Returns kwargs suitable for :class:`g8scope.Config`. Tolerant of a missing
+    Returns kwargs suitable for :class:`bliptrace.Config`. Tolerant of a missing
     or unconfigured Django settings module.
     """
     settings = _django_settings()
@@ -104,7 +104,7 @@ def _read_settings() -> Dict[str, Any]:
                 values[key] = value
 
     # Tag the SDK so the platform knows the report came via the Django adapter.
-    values.setdefault("sdk_name", "g8scope-django")
+    values.setdefault("sdk_name", "bliptrace-django")
     values.setdefault("sdk_version", "1.0.0")
     return values
 
