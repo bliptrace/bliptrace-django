@@ -1,6 +1,6 @@
 # bliptrace-django
 
-Django adapter for the [Bliptrace](https://scope.g8suite.com) error-capture and
+Django adapter for the [Bliptrace](https://bliptrace.com) error-capture and
 observability platform. A **thin** layer over the runtime
 [`bliptrace` Python SDK](../bliptrace-python) — it adds Django middleware that
 captures unhandled exceptions, enriches them with request context, and ships
@@ -40,7 +40,7 @@ Then configure Bliptrace. Either a single `BLIPTRACE` dict:
 ```python
 BLIPTRACE = {
     "key": "your-ingest-key",
-    "endpoint": "https://ingest.scope.g8suite.com",
+    "endpoint": "https://ingest.bliptrace.com",
     "environment": "production",
     # optional: "release", "timeout", "max_frames", "max_message",
     #           "ignore_exceptions", "scrub_keys", "base_path", "enabled"
@@ -51,7 +51,7 @@ BLIPTRACE = {
 
 ```python
 BLIPTRACE_KEY = "your-ingest-key"
-BLIPTRACE_ENDPOINT = "https://ingest.scope.g8suite.com"
+BLIPTRACE_ENDPOINT = "https://ingest.bliptrace.com"
 BLIPTRACE_ENVIRONMENT = "production"
 ```
 
